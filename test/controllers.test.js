@@ -1,6 +1,7 @@
 import assert from "node:assert/strict"
 import { readFile } from "node:fs/promises"
 import test from "node:test"
+import { addLayer, defaultLayers, layerLimit, removeLayer } from "../src/layers.js"
 import { createQaReviewStore, qaExportOverrideNote } from "../src/qa-review.js"
 
 const desktopCalls = { tasks: [], cancelled: [] }
@@ -299,7 +300,7 @@ test("chat setup exposes its panel controls and resolves the active skill", asyn
     renderFontOptions() {},
     restoreHistory() {},
   })
-  assert.deepEqual(Object.keys(api).sort(), ["close", "getActiveSkill", "open", "refreshModelBadge", "syncProjectSession"])
+  assert.deepEqual(Object.keys(api).sort(), ["close", "getActiveSkill", "open", "refreshModelBadge", "refreshWelcome", "syncProjectSession"])
   assert.equal(typeof api.getActiveSkill().id, "string")
   api.open()
   api.close()
@@ -752,6 +753,55 @@ function setupZoom({ state, page, canvasWidth }) {
     return { api, byId, viewport, pageCanvas, renders }
   })
 }
+
+test("a brush gesture on a full stack without a brush layer is refused and explained", async () => {
+  const { byId } = createById()
+  const page = {
+    image: { naturalWidth: 400, naturalHeight: 600 },
+    boxes: [],
+    layers: defaultLayers(),
+    retouchStrokes: [],
+  }
+  removeLayer(page, page.layers.find((layer) => layer.kind === "retouch").id)
+  while (page.layers.length < layerLimit) addLayer(page, "cleanup")
+  byId("cleanup-tool").value = "paint"
+  byId("brush-size").value = "20"
+  byId("paint-opacity").value = "100"
+  byId("paint-color").value = "#ffffff"
+
+  const statuses = []
+  const stage = fakeElement()
+  let captured = 0
+  stage.setPointerCapture = () => { captured++ }
+  const { setupGestures } = await controllers("gestures")
+  setupGestures({
+    ...baseArguments(byId, { pages: [] }),
+    status: (message, error) => statuses.push([message, error]),
+    t: (key) => "T:" + key,
+    selectedPage: () => page,
+    stage,
+    overlays: fakeElement(),
+    pageCanvas: fakeElement(),
+    viewport: fakeElement(),
+    editorSnapshot: () => ({}),
+    toggleSelectBox() {},
+    addBox() {},
+    freezeCleanup() {},
+    rectStyle: (element, rect) => rect,
+    paintPreview() {},
+    renderCleanupOverlay() {},
+    renderCanvas() {},
+    renderInspector() {},
+    changePage() {},
+  })
+
+  stage.dispatch("pointerdown", {
+    pointerId: 1, button: 0, clientX: 10, clientY: 10, preventDefault() {},
+  })
+  assert.deepEqual(statuses, [["T:status.retouch.noLayer", true]])
+  assert.equal(captured, 0, "no drag starts when the stroke could never paint")
+  assert.deepEqual(page.retouchStrokes, [])
+})
 
 test("zoom-out follows the measured scale instead of snapping up from Fit", async () => {
   const state = { pages: [], zoom: null, fit: true }

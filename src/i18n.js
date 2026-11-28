@@ -38,7 +38,7 @@ export function dateLocale(value) {
 export function loadLocale(storage = globalThis.localStorage) {
   try {
     const saved = storage?.getItem(LOCALE_STORAGE_KEY)
-    if (isLocale(saved)) return saved
+    if (saved) return normalizeLocale(saved)
   } catch {
     // Ignore storage errors.
   }

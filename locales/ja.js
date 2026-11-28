@@ -7,6 +7,7 @@ export const meta = {
 
 export const messages = {
   "app.title": "Nixio — 漫画ページ編集",
+  "chat.welcome": "AI アシスタント Harness v3 は、プロジェクトの文脈を直接読み取り、ジャンル別スキルプロファイル、選択式の質問カード、AI 変更の個別承認（一括操作を含む）、プランモード、ネットワーク/429 エラー時の自動再試行、ツールの繰り返し防止、クイックコマンド（/qc、/plan、/autofit、/compact、/skill、/help）に対応します。",
   "dialog.close": "閉じる",
   "dialogs.styleGuide.cleared": "プロジェクトのスタイルガイドを削除しました。",
   "dialogs.styleGuide.defaultOption": "既定",
@@ -173,6 +174,7 @@ export const messages = {
   "status.raw.running": "raw 画像をクリーニング中（ホワイトバランス、ノイズ除去、シャープ）…",
   "status.redo": "やり直しました。",
   "status.retouch.cleared": "ページ上の手描きストロークをすべて消去しました。",
+  "status.retouch.noLayer": "描画できません: ページは24レイヤーに達しており、ブラシレイヤーがありません。レイヤーを削除してからもう一度お試しください。",
   "status.retouch.undo": "直前のブラシストロークを元に戻しました。",
   "status.script.failed": "台本を読み込めませんでした。{error}",
   "status.script.needInput": "画像を追加し、セリフを入力してください。",

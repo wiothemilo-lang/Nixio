@@ -15,6 +15,12 @@ export const exportManifestFileName = "manifest.json"
 // twice produces the same bytes; JSZip otherwise writes the moment of export into each entry.
 export const exportArchiveDate = new Date("1980-01-01T00:00:00Z")
 
+// Every archive writer goes through this helper: a raw `zip.file()` stamps the export moment into the
+// entry header, so two exports of the same project would differ even when the page bytes are equal.
+export function writeArchiveEntry(zip, name, content) {
+  return zip.file(name, content, { date: exportArchiveDate })
+}
+
 export const EXPORT_PROFILE_LIMITS = Object.freeze({
   minWidth: 320,
   minSliceHeight: 200,

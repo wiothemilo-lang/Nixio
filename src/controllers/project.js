@@ -375,7 +375,7 @@ export function setupProjects({
         const heading = document.createElement("h3")
         heading.textContent = project.title
         section.append(heading)
-        if (project.path) {
+        if (project.saved) {
           const open = document.createElement("button")
           open.className = "button"
           open.textContent = "Mở tệp đã lưu"

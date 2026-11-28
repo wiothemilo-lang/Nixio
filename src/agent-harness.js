@@ -70,6 +70,17 @@ export async function summarizeHistoryWithLlm({
   if (list.length <= keepRecentMessages + 1) {
     return compactChatHistory(list, { keepRecentMessages, force: true })
   }
+  // A summary is a paid provider call too: the same pre-flight gate that guards every agent step
+  // must guard it, otherwise `/compact ai` can spend past a budget that already blocked new turns.
+  const gate = accounting?.gate?.()
+  if (gate?.blocked) {
+    return {
+      ...compactChatHistory(list, { keepRecentMessages, force: true }),
+      usage: null,
+      budgetBlocked: true,
+      message: gate.message,
+    }
+  }
   const totalChars = list.reduce((sum, m) => sum + m.text.length, 0)
   const older = list.slice(0, list.length - keepRecentMessages)
   const recent = list.slice(list.length - keepRecentMessages)

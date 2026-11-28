@@ -569,7 +569,8 @@ class ProviderTransport {
       // A caller deadline only ever shortens the transport default it was validated against.
       lifetimeMs ?? (kind === "stream" ? this.streamLifetimeMs : this.lifetimeMs),
     )
-    entry.deadline?.unref?.()
+    // Keep the deadline referenced: a vault read or resolver promise alone does not keep the event
+    // loop alive, so an unref'd timer lets an unanswered exchange hang forever instead of timing out.
     return entry
   }
 

@@ -22,7 +22,7 @@ Nixio là dự án độc lập, lấy cảm hứng từ Lilyzono nhưng đã đ
 | **Lớp & chọn nhiều trang**: stack lớp thật của từng trang (`Nền đã xoá chữ` → `Cọ vẽ tay` → `Lớp chữ`, tối đa 24; bật/tắt, độ đục, đổi tên, đổi thứ tự, nhân bản, xoá, chuyển từng nét cọ giữa các lớp) và thanh thao tác hàng loạt cho trang đã chọn (dịch, nhân bản, di chuyển, xuất ZIP, xoá) | Có | Có |
 | **Hồ sơ xuất theo nền tảng**: 5 hồ sơ (Bản gốc, NAVER WEBTOON, KakaoPage, Tapas, WEBTOON Canvas) quy định khổ, chiều cao mảnh, lề an toàn, định dạng/chất lượng, cách đặt tên và metadata `manifest.json`; ZIP **tất định byte-for-byte** | Có | Có |
 | **Kế toán token & chi phí**: ghi token thật từ API (kèm ước lượng khi thiếu), bảng giá USD/1M token do người dùng tự nhập, tổng theo model/phiên/trang, cảnh báo theo % hạn mức và **chặn gọi khi vượt hạn mức** | Có | Có |
-| **Đa ngôn ngữ & trợ năng**: giao diện `vi`/`en`/`ja` đổi ngay không tải lại (205 khoá, dự phòng tiếng Việt), ngày giờ theo locale; live region cho trạng thái, tên nút/ô nhập cho trình đọc màn hình và focus ring rõ ràng | Có | Có |
+| **Đa ngôn ngữ & trợ năng**: giao diện `vi`/`en`/`ja` đổi ngay không tải lại (213 khoá, dự phòng tiếng Việt), ngày giờ theo locale; live region cho trạng thái, tên nút/ô nhập cho trình đọc màn hình và focus ring rõ ràng | Có | Có |
 | **Kiểm tra cập nhật & Trung tâm Thông báo** (kiểm tra GitHub Releases theo SemVer 2.0, ghi chú phát hành, bỏ qua phiên bản; toast có nút 1 chạm cho tràn chữ / nhắc lưu / hoàn tác AI / trạng thái mạng) | Có | Có (qua Electron IPC bảo mật & mở liên kết HTTPS ngoài) |
 | OCR cục bộ offline (Tesseract, tiền xử lý phóng lớn/giảm nhiễu/xoay 0–270°, chữ dọc Nhật `jpn_vert`, gom dòng & cửa sổ duyệt kết quả có độ tin cậy) | — | Có |
 | Tìm & thay thế toàn chương, xuất kịch bản (`TXT` / `CSV` / `JSON`), **Glossary & QA Linter 0-token** + rà trước khi xuất (**Export Preflight**) | Có | Có |
@@ -284,7 +284,7 @@ Nixio/
 ### 7. Mẫu dự án, phong cách dịch, trợ năng & đa ngôn ngữ
 - **Mẫu dự án** (nút **Mẫu dự án…** cạnh thanh tiêu đề): 4 mẫu dựng sẵn — **Manga trắng đen (Nhật → Việt)**, **Manhwa (Hàn → Anh)**, **4-koma (Nhật → Việt)** và **Webtoon dọc (cắt dải)** — cộng tối đa **40 mẫu người dùng**. Một mẫu gói hướng đọc, model, ngôn ngữ nguồn/đích, ghi chú dịch, glossary, mẫu dàn chữ, font và định dạng xuất; **không bao giờ chứa kịch bản** vì đó là nội dung trang. Có thể áp dụng cho dự án đang mở, tạo dự án mới từ mẫu, lưu thiết lập hiện tại thành mẫu, đổi tên/ghi đè/xoá và **xuất/nhập JSON** để chia sẻ trong nhóm.
 - **Hướng dẫn phong cách dịch của dự án** (nút **Hướng dẫn phong cách…**): 6 nhóm quy tắc — giọng điệu/văn phong, xưng hô & đại từ, kiểu dấu ngoặc kép, cách viết hoa, xử lý SFX và ghi chú tự do. Quy tắc lưu cùng tệp dự án, tự chèn vào mọi lượt dịch và được **QA Linter 0-token** dùng để bắt dấu ngoặc sai quy tắc; công cụ `check_style_guide` cho Trợ lý AI rà cùng lúc.
-- **Đa ngôn ngữ**: ô chọn ngôn ngữ trên header đổi giữa **Tiếng Việt / English / 日本語** ngay lập tức (205 khoá, dự phòng tiếng Việt, ngày giờ theo locale `vi-VN`/`en-GB`/`ja-JP`) và lưu lựa chọn trong `localStorage`. Thêm ngôn ngữ mới chỉ cần một tệp `locales/<mã>.js` + một dòng trong `locales/index.js`; test parity đọc chính `index.html` nên markup và catalogue không thể lệch. Xem [docs/i18n.md](docs/i18n.md).
+- **Đa ngôn ngữ**: ô chọn ngôn ngữ trên header đổi giữa **Tiếng Việt / English / 日本語** ngay lập tức (213 khoá, dự phòng tiếng Việt, ngày giờ theo locale `vi-VN`/`en-GB`/`ja-JP`) và lưu lựa chọn trong `localStorage`. Thêm ngôn ngữ mới chỉ cần một tệp `locales/<mã>.js` + một dòng trong `locales/index.js`; test parity đọc chính `index.html` nên markup và catalogue không thể lệch. Xem [docs/i18n.md](docs/i18n.md).
 - **Trợ năng**: live region công bố thông báo trạng thái cho trình đọc màn hình, nút/ô nhập có `aria-label`/`data-i18n-aria-label`, và focus được giữ qua mỗi lần dựng lại danh sách nhờ `data-focus-key` (không nhảy về đầu trang).
 
 ---
@@ -319,7 +319,7 @@ Chọn truyện và chương để đọc, chuyển ảnh vào trình biên tậ
 Chạy toàn bộ bộ test bằng Node.js 22.12+:
 
 ```sh
-npm test                 # 96 tệp / 867 test (840 chạy + 27 bỏ qua khi thiếu .NET 10)
+npm test                 # 96 tệp / 879 test (852 chạy + 27 bỏ qua khi thiếu .NET 10)
 npm run test:coverage    # Báo cáo độ phủ + luật phủ controller/tool registry
 npm run test:autosave    # Harness tự lưu trên Chromium thật (Playwright + IndexedDB giả)
 npm run test:visual      # So khớp ảnh chụp giao diện với baseline đã commit
@@ -351,7 +351,7 @@ npm run eval:agent       # Chấm output AI offline bằng fixture vàng
 - `provider-registry.test.js`, `provider-bridge.test.js`, `provider-transport.test.js`, `provider-desktop-wiring.test.js`, `credential-store.test.js`, `credential-ipc.test.js`, `credential-settings.test.js` & `credential-settings-wiring.test.js`: Registry nhà cung cấp, transport dựng request ở main process, kho `safeStorage` (handle hợp lệ, tối đa 8 KiB), hợp đồng khóa ghi-một-chiều và trạng thái trên UI.
 - `templates.test.js` & `project-templates.test.js`: 4 mẫu dựng sẵn, validate không chứa kịch bản, giới hạn 40 mẫu, áp dụng/tạo dự án mới và JSON round-trip.
 - `page-selection.test.js` & `multi-select.test.js`: Chọn dải/toggle, `Ctrl+A` trong danh sách trang, di chuyển nhóm, nhân bản trang và thanh thao tác hàng loạt.
-- `i18n.test.js`: Parity 3 catalogue (205 khoá), nội suy, fallback tiếng Việt, markup `index.html` khớp catalogue và đổi ngôn ngữ không tải lại.
+- `i18n.test.js`: Parity 3 catalogue (213 khoá), nội suy, fallback tiếng Việt, markup `index.html` khớp catalogue và đổi ngôn ngữ không tải lại.
 - `accessibility.test.js`, `focus.test.js`, `live-region-wiring.test.js`, `shortcuts.test.js` & `keyboard-geometry.test.js`: `aria-label`/live region, giữ focus qua lần dựng lại, phím tắt và điều khiển hình học khung hoàn toàn bằng bàn phím.
 - `native-framing.test.js` & `native-negotiation.test.js`: Khung KTR1 (magic, độ dài LE, giới hạn meta/payload) và thương lượng khoảng protocol kèm mã lỗi `NATIVE_PROTOCOL_INCOMPATIBLE`.
 - `release-notes.test.js`, `release-reproducible.test.js`, `release-workflow.test.js` & `ci-gates.test.js`: Ghi chú phát hành khớp tag, digest tái lập, workflow CD và cổng CI (coverage, visual, eval).

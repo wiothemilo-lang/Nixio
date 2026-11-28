@@ -7,6 +7,7 @@ export const meta = {
 
 export const messages = {
   "app.title": "Nixio — Comic page editor",
+  "chat.welcome": "AI assistant Harness v3 supports live project context, genre skill profiles, multiple-choice question cards, per-change AI approval (including bulk actions), Plan Mode, automatic retries on network/429 errors, tool-loop guards, and quick commands (/qc, /plan, /autofit, /compact, /skill, /help).",
   "dialog.close": "Close",
   "dialogs.styleGuide.cleared": "Project style guide removed.",
   "dialogs.styleGuide.defaultOption": "Default",
@@ -173,6 +174,7 @@ export const messages = {
   "status.raw.running": "Cleaning the raw image (white balance, denoise, sharpen)…",
   "status.redo": "Redone.",
   "status.retouch.cleared": "Cleared every hand-drawn stroke on the page.",
+  "status.retouch.noLayer": "Cannot paint: the page already has 24 layers and no brush layer. Delete a layer and try again.",
   "status.retouch.undo": "Undid the most recent brush stroke.",
   "status.script.failed": "Could not import the script. {error}",
   "status.script.needInput": "Add images and paste the dialogue first.",

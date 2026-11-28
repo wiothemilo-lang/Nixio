@@ -83,9 +83,32 @@ export function normalizeUsage({ usage = null, promptChars = 0, completionChars 
   }
 }
 
+// The persisted price table only keeps keys up to this length. Build keys inside that bound so a
+// price entered for a long model id survives a reload and the budget gate keeps enforcing it.
+const priceKeyLimit = 120
+
+// A plain prefix of a long id would merge models that differ only after the cut. Two independent
+// rolling hashes over the *full* id make the bounded key collision-resistant without changing any
+// short key that existing ledgers already use.
+function modelDigest(name) {
+  let a = 0x811c9dc5
+  let b = 0x01000193
+  for (let index = 0; index < name.length; index++) {
+    const code = name.charCodeAt(index)
+    a = Math.imul(a ^ code, 0x01000193) >>> 0
+    b = Math.imul(b + code, 0x85ebca6b) >>> 0
+  }
+  return a.toString(16).padStart(8, "0") + b.toString(16).padStart(8, "0")
+}
+
 export function priceKey(provider, model) {
   const name = String(model ?? "").trim().toLowerCase()
-  return (provider === "openai" ? "openai" : "gemini") + ":" + (name || "auto")
+  const prefix = (provider === "openai" ? "openai" : "gemini") + ":"
+  const full = name || "auto"
+  const room = priceKeyLimit - prefix.length
+  if (full.length <= room) return prefix + full
+  const digest = modelDigest(full)
+  return prefix + full.slice(0, room - digest.length - 1) + "~" + digest
 }
 
 /**
@@ -176,7 +199,7 @@ function cleanPriceTable(raw) {
   const prices = {}
   for (const [key, value] of Object.entries(raw && typeof raw === "object" ? raw : {})) {
     const row = normalizePrice(value)
-    if (row && typeof key === "string" && key && key.length <= 120) prices[key] = row
+    if (row && typeof key === "string" && key && key.length <= priceKeyLimit) prices[key] = row
   }
   return prices
 }
@@ -234,7 +257,7 @@ export function hydrateLedger(raw) {
     models: cleanBuckets(raw.models, MAX_MODELS, (value) => ({
       provider: value?.provider === "openai" ? "openai" : "gemini",
       model: typeof value?.model === "string" ? value.model.slice(0, 120) : "auto",
-      priceKey: typeof value?.priceKey === "string" ? value.priceKey.slice(0, 120) : "",
+      priceKey: typeof value?.priceKey === "string" ? value.priceKey : "",
     })),
   }
 }
@@ -256,12 +279,15 @@ function bucket(buckets, key, entry, limit, decorate = () => ({})) {
 export function recordCall(ledger, call = {}) {
   const base = ledger ?? createLedger()
   const provider = call.provider === "openai" ? "openai" : "gemini"
-  const model = String(call.model || "auto").slice(0, 120)
+  // Key the bucket on the full id before truncating the display name, so two long models that share
+  // a 120-character prefix still get their own prices and usage history.
+  const fullModel = String(call.model || "auto")
+  const model = fullModel.slice(0, 120)
   const tokens = call.tokens ?? {}
   const promptTokens = Math.max(0, Math.round(Number(tokens.promptTokens) || 0))
   const completionTokens = Math.max(0, Math.round(Number(tokens.completionTokens) || 0))
   const cachedTokens = Math.min(promptTokens, Math.max(0, Math.round(Number(tokens.cachedTokens) || 0)))
-  const key = priceKey(provider, model)
+  const key = priceKey(provider, fullModel)
   const priced = priceTokens(base.prices?.[key] ?? null, { promptTokens, completionTokens, cachedTokens })
   const entry = {
     at: Number(call.at) || 0,

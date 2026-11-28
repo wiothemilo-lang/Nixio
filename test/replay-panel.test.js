@@ -96,6 +96,17 @@ function recordFor({ id, approve = "approved", tool = "list_boxes", status = "co
   return recorder.snapshot()
 }
 
+test("a turn record can be saved under the project the turn started in", async () => {
+  installBrowserGlobals()
+  const { panel } = makePanel()
+  const record = recordFor({ id: "turn-project-switch" })
+  assert.equal(panel.save(record, "proj-b"), true)
+  assert.deepEqual(loadProjectTurnRecords("proj-a"), [], "the active project does not inherit another turn's record")
+  assert.equal(loadProjectTurnRecords("proj-b").length, 1)
+  assert.equal(panel.save(record), true)
+  assert.equal(loadProjectTurnRecords("proj-a").length, 1, "the default remains the active project")
+})
+
 test("the step usage line follows the active locale", async () => {
   installBrowserGlobals()
   const { panel, elements } = makePanel({ t: (key, params) => translate("en", key, params) })

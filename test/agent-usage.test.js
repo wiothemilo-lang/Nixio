@@ -195,6 +195,36 @@ test("a budget that is already over stops the turn before the first call", async
   assert.equal(result.usageTotals.calls, 0)
 })
 
+test("AI compaction never pays for a summary after the budget gate blocked it", async (t) => {
+  const originalFetch = globalThis.fetch
+  t.after(() => { globalThis.fetch = originalFetch })
+  let calls = 0
+  globalThis.fetch = async () => {
+    calls++
+    return jsonResponse({ choices: [{ message: { content: "- Mục tiêu" } }] })
+  }
+
+  const ledger = makeLedger()
+  ledger.setPrice("openai", "qwen2.5:7b", { inputPerMTok: 1000, outputPerMTok: 0, cachedPerMTok: 0 })
+  ledger.setBudget({ limitUsd: 1, warnPercent: 80 })
+  ledger.record({ provider: "openai", model: "qwen2.5:7b", tokens: { promptTokens: 1500 } })
+  const history = Array.from({ length: 8 }, (_, index) => ({
+    role: index % 2 === 0 ? "user" : "assistant",
+    text: `Lượt ${index + 1} nội dung`,
+  }))
+
+  const result = await summarizeHistoryWithLlm({
+    history,
+    settings: openAiSettings,
+    keepRecentMessages: 4,
+    accounting: { record: (call) => ledger.record(call), gate: () => ledger.gate() },
+  })
+  assert.equal(calls, 0, "the blocked summary made no provider call")
+  assert.equal(result.budgetBlocked, true)
+  assert.match(result.message, /Hãy tăng hạn mức hoặc bấm “Đặt lại kế toán”/)
+  assert.equal(ledger.snapshot().totals.calls, 1, "only the earlier blocking call is booked")
+})
+
 test("the AI compaction call is booked like any other paid call", async (t) => {
   const originalFetch = globalThis.fetch
   t.after(() => { globalThis.fetch = originalFetch })

@@ -140,7 +140,7 @@ test("the recent projects dialog explains busy tasks and refuses to open", async
       {
         id: "p1",
         title: "Dự án A",
-        path: "/tmp/a.json",
+        saved: true,
         snapshots: [{ id: "s1", updatedAt: 0 }],
       },
     ]

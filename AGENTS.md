@@ -59,7 +59,7 @@ Node 22.12+, `node:test` + `node:assert/strict`; tên test là câu mô tả hà
 | pipeline ảnh | `npm run benchmark` |
 
 - Không sửa test để test xanh; không thêm skip trừ khi môi trường thiếu (ví dụ thiếu `dotnet`) và phải nêu trong báo cáo.
-- Trên máy không có .NET: `npm test` = 867 test, 840 pass, 27 skip, 0 fail.
+- Trên máy không có .NET: `npm test` = 879 test, 852 pass, 27 skip, 0 fail.
 
 ## 5. Commit & PR
 
@@ -90,9 +90,10 @@ Node 22.12+, `node:test` + `node:assert/strict`; tên test là câu mô tả hà
 
 | Vị trí | Vấn đề | Hướng xử lý |
 |---|---|---|
-| `src/provider-registry.js`, `index.html` | Model Gemini `gemini-3.1-flash-lite`, `gemini-3.5-flash-lite` chưa xác nhận tồn tại | Đối chiếu tài liệu Google rồi sửa cả hai nơi + test |
 | `src/updater.js` | `APP_VERSION = "1.3.0"` trùng `package.json` | Bump cùng lúc với release notes |
 | 27 test native | Bị skip khi thiếu `dotnet` | Không coi là đã kiểm chứng native |
+
+Đã đối chiếu tài liệu Google ngày 28/11/2026: `gemini-3.1-flash-lite` và `gemini-3.5-flash-lite` đều là model stable, không còn là lệch đã biết. Nhãn "Harness v2.5" đã được sửa thành v3 ở `src/agent-context.js` và `src/controllers/chat.js`.
 
 ## 9. Definition of done
 

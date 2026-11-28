@@ -1,5 +1,6 @@
 import assert from "node:assert/strict"
 import test from "node:test"
+import JSZip from "jszip"
 import {
   DEFAULT_EXPORT_PROFILE_ID,
   GLOBAL_EXPORT_PROFILE_KEY,
@@ -18,6 +19,7 @@ import {
   saveGlobalExportProfileId,
   serializeExportManifest,
   validateExportProfile,
+  writeArchiveEntry,
 } from "../src/export-presets.js"
 import { CANVAS_LIMITS, renderExportSlices, smartSlicePageImage } from "../src/webtoon.js"
 
@@ -277,6 +279,20 @@ test("exportManifest lists the slice order of every page and carries no timestam
     }),
     /Thứ tự mảnh xuất không hợp lệ/,
   )
+})
+
+test("every archive entry uses the fixed epoch so two exports of the same bytes are identical", async () => {
+  const build = async () => {
+    const zip = new JSZip()
+    writeArchiveEntry(zip, "01.png", new Uint8Array([1, 2, 3]))
+    writeArchiveEntry(zip, exportManifestFileName, "{}")
+    return zip.generateAsync({ type: "nodebuffer" })
+  }
+  const first = await build()
+  assert.deepEqual(await build(), first, "a later export must not stamp the current time")
+  const read = await JSZip.loadAsync(first)
+  assert.equal(read.file("01.png").date.toISOString(), exportArchiveDate.toISOString())
+  assert.equal(read.file(exportManifestFileName).date.toISOString(), exportArchiveDate.toISOString())
 })
 
 test("renderExportSlices draws, pads and encodes one file per planned slice", async (t) => {

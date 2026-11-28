@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { webcrypto } from "node:crypto"
 import test from "node:test"
-import { autoFitBox, drawPage, makeBox, psdTextLayer, textOverflows } from "../src/canvas.js"
+import { autoFitBox, drawPage, makeBox, psdTextLayer, scanSourceImage, textOverflows } from "../src/canvas.js"
 import { allFonts, psdFontName, registerFontName } from "../src/fonts.js"
 
 globalThis.crypto ??= webcrypto
@@ -9,6 +9,7 @@ globalThis.crypto ??= webcrypto
 function installCanvasMock() {
   const originalDocument = globalThis.document
   const ops = []
+  const images = []
   const makeContext = () => ({
     font: "",
     fillStyle: "",
@@ -33,7 +34,7 @@ function installCanvasMock() {
     fill() { ops.push(["fill", this.fillStyle]) },
     fillRect(...args) { ops.push(["fillRect", this.fillStyle, ...args]) },
     clearRect() {},
-    drawImage() {},
+    drawImage(image) { images.push(image) },
     strokeText(text) { ops.push(["strokeText", text, this.strokeStyle, this.lineWidth, this.shadowBlur, this.shadowColor]) },
     fillText(text) { ops.push(["fillText", text, this.fillStyle, this.font, this.shadowBlur, this.shadowColor]) },
     measureText(text) {
@@ -46,7 +47,7 @@ function installCanvasMock() {
       return { width: 0, height: 0, getContext: makeContext }
     },
   }
-  return { ops, restore: () => { globalThis.document = originalDocument } }
+  return { ops, images, restore: () => { globalThis.document = originalDocument } }
 }
 
 test("drawPage renders stroke, uppercase, ellipse shape and vertical text cleanly", (t) => {
@@ -99,15 +100,34 @@ test("autoFitBox picks the largest non-overflowing font size for horizontal and 
 })
 
 test("hiding cleanup paints the original page without sampling cleanup regions", (t) => {
-  const { restore } = installCanvasMock()
+  const { images, restore } = installCanvasMock()
   t.after(restore)
   const canvas = document.createElement("canvas")
+  const originalImage = { naturalWidth: 400, naturalHeight: 600 }
   const page = {
     image: { naturalWidth: 400, naturalHeight: 600 },
+    originalImage,
     boxes: [{ cleanup: true, x: .1, y: .1, w: .3, h: .2 }],
   }
   // The fake Canvas intentionally has no getImageData method.
   assert.equal(drawPage(canvas, page, { showCleanup: false, showText: false }), null)
+  assert.equal(images[0], originalImage, "compare mode must show the untouched scan")
+})
+
+test("scanSourceImage only uses the original scan when cleanup is hidden", () => {
+  const layers = [
+    { id: "layer-cleanup", kind: "cleanup", visible: true, opacity: 1 },
+    { id: "layer-retouch", kind: "retouch", visible: true, opacity: 1 },
+    { id: "layer-text", kind: "text", visible: true, opacity: 1 },
+  ]
+  const image = { naturalWidth: 10, naturalHeight: 10 }
+  const originalImage = { naturalWidth: 10, naturalHeight: 10 }
+  const page = { layers, image, originalImage }
+  assert.equal(scanSourceImage(page), image)
+  assert.equal(scanSourceImage(page, { showCleanup: false }), originalImage)
+  layers[0].visible = false
+  assert.equal(scanSourceImage(page), originalImage)
+  assert.equal(scanSourceImage({ image, originalImage: null }, { showCleanup: false }), image)
 })
 
 test("fonts helper registers custom font names and maps PostScript font names safely", () => {

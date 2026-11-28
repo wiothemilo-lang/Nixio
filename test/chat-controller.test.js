@@ -129,7 +129,7 @@ function sessionHistory() {
   ]
 }
 
-async function createHarness({ prepareStorage, pages = [] } = {}) {
+async function createHarness({ prepareStorage, pages = [], replay = null, t = null } = {}) {
   installBrowserGlobals()
   prepareStorage?.()
   const elements = new Map()
@@ -187,6 +187,8 @@ async function createHarness({ prepareStorage, pages = [] } = {}) {
     renderFontOptions() {},
     notify(notification) { notifications.push(notification) },
     restoreHistory() {},
+    replay,
+    ...(t ? { t } : {}),
   })
 
   return {
@@ -394,6 +396,46 @@ test("busy submission keeps the draft and disables every chat control", async ()
   assert.equal(harness.byId("chat-stop").hidden, true)
   assert.equal(harness.panel.getAttribute("aria-busy"), "false")
   assert.equal(input.value, "Bản nháp mới")
+})
+
+test("the welcome card follows the active locale", async () => {
+  const { translate } = await import("../src/i18n.js")
+  const harness = await createHarness({ t: (key, params) => translate("en", key, params) })
+  const welcome = byClass(harness.byId("chat-messages"), "chat-msg system")[0]
+  assert.match(welcome.textContent, /AI assistant Harness v3/)
+  assert.doesNotMatch(welcome.textContent, /Trợ lý AI/)
+})
+
+test("a project switch during AI compaction hands the panel back to the new project", async () => {
+  const { loadProjectChatSession, saveProjectChatSession } = await import("../src/chat-storage.js")
+  const harness = await createHarness()
+  saveProjectChatSession("project-1", { history: sessionHistory(), todos: [] })
+  saveProjectChatSession("project-2", { history: [{ role: "user", text: "Câu cũ của dự án 2" }], todos: [] })
+  harness.chat.syncProjectSession()
+  harness.setFetch((index, init) => hangingFetch(init))
+
+  harness.submit("/compact ai")
+  await drain()
+  assert.equal(harness.byId("chat-stop").hidden, false)
+
+  harness.state.projectId = "project-2"
+  harness.chat.syncProjectSession()
+  harness.byId("chat-stop").onclick()
+  await drain()
+
+  // The old project keeps its compacted transcript, but the panel now shows the open project's own
+  // chat, so the next prompt cannot append project 1's rows to project 2.
+  assert.deepEqual(loadProjectChatSession("project-1").history, sessionHistory(), "the old project's transcript is untouched")
+  assert.match(textOf(harness.byId("chat-messages")), /Câu cũ của dự án 2/)
+  assert.doesNotMatch(textOf(harness.byId("chat-messages")), /Nhân vật chính tên gì/)
+
+  harness.setFetch(() => geminiText("Trả lời của dự án 2"))
+  harness.submit("Câu hỏi mới")
+  await drain()
+  assert.deepEqual(
+    loadProjectChatSession("project-2").history.map((message) => message.text),
+    ["Câu cũ của dự án 2", "Câu hỏi mới", "Trả lời của dự án 2"],
+  )
 })
 
 test("AI compaction disables the composer, releases on cancel, and reports failures", async () => {
@@ -839,6 +881,28 @@ test("a project switch during a turn keeps the transcript in the project the tur
   assert.ok(started.length >= 2, "the turn lands in the project it started in")
   assert.equal(started.at(-1).text, "Đã đọc trang 1.")
   assert.deepEqual(loadProjectChatSession("project-2").history, [], "nothing leaks into the project the user opened")
+})
+
+test("a replay record of a turn stays in the project the turn started in (#review)", async () => {
+  const saved = []
+  const harness = await createHarness({
+    replay: {
+      save: (record, projectId) => { saved.push({ record, projectId }); return true },
+      refresh() {},
+    },
+  })
+  const stream = streamingResponse()
+  harness.setFetch(() => stream.response())
+  harness.submit("Đọc trang 1")
+  await drain()
+  harness.state.projectId = "project-2"
+  harness.chat.syncProjectSession()
+  stream.send("Đã đọc trang 1.")
+  stream.close()
+  await drain()
+
+  assert.ok(saved.length >= 1, "the finished turn was recorded for replay")
+  assert.ok(saved.every((entry) => entry.projectId === "project-1"), "the record follows the turn, not the open project")
 })
 
 test("a project opened mid-turn gets its own chat back when the turn ends (#review)", async () => {

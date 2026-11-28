@@ -1,6 +1,6 @@
 import { clamp } from "../canvas.js"
 import { detectBubbleOnImage } from "../bubble.js"
-import { addStroke } from "../layers.js"
+import { addStroke, canPaint } from "../layers.js"
 import { prepareNativeClone, prepareNativeInpaint, samplePixelColor } from "../retouch.js"
 import { resizeBox, rotateBox, snapBox } from "../tools.js"
 import { resizeGroup } from "../selection.js"
@@ -18,6 +18,7 @@ export function setupGestures({
   pageCanvas,
   viewport,
   status,
+  t = (key) => key,
   checkpoint,
   editorSnapshot,
   commitLiveForm,
@@ -238,6 +239,10 @@ export function setupGestures({
       }
       if (tool === "clone" && !state.cloneSource) {
         status("Giữ Alt + bấm vào vùng nền mẫu trước khi dùng cọ sao chép.", true)
+        return
+      }
+      if (!canPaint(page, state.layerId)) {
+        status(t("status.retouch.noLayer"), true)
         return
       }
       stage.setPointerCapture(event.pointerId)
@@ -487,7 +492,11 @@ export function setupGestures({
     if (completed.kind === "inpaint-preview") {
       const page = selectedPage()
       if (page) {
-        addStroke(page, completed.stroke, state.layerId)
+        if (!addStroke(page, completed.stroke, state.layerId)) {
+          status(t("status.retouch.noLayer"), true)
+          render()
+          return
+        }
         checkpoint(completed.before, { label: "Tẩy chữ và tái tạo nền (Inpaint)", kind: "retouch" })
         prepareNativeInpaint(page, completed.stroke).then((usedNative) => {
           if (usedNative && selectedPage() === page) {

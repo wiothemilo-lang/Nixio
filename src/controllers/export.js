@@ -18,13 +18,13 @@ import {
 } from "../qa-review.js"
 import {
   describeExportProfile,
-  exportArchiveDate,
   exportManifest,
   exportManifestFileName,
   loadGlobalExportProfileId,
   planExportSlices,
   resolveExportProfile,
   serializeExportManifest,
+  writeArchiveEntry,
 } from "../export-presets.js"
 import { renderExportSlices } from "../webtoon.js"
 import { desktop } from "../native.js"
@@ -98,18 +98,14 @@ export function setupExports({
             status(`Trang ${index + 1}/${pages.length} · mảnh ${sliceIndex}/${total}: ${fileName} (${width}×${height} px).`)
           },
         })
-        for (const file of files) zip.file(file.name, file, { date: exportArchiveDate })
+        for (const file of files) writeArchiveEntry(zip, file.name, file)
         plans.push({ pageName: page.name, plan })
         order += files.length
       } finally {
         bitmap.close?.()
       }
     }
-    zip.file(
-      exportManifestFileName,
-      serializeExportManifest(exportManifest({ profile, plans })),
-      { date: exportArchiveDate },
-    )
+    writeArchiveEntry(zip, exportManifestFileName, serializeExportManifest(exportManifest({ profile, plans })))
     saveFile(await zip.generateAsync({ type: "blob" }), `nixio-${profile.id}.zip`)
     return plans.reduce((total, { plan }) => total + plan.slices.length, 0)
   }
@@ -520,10 +516,7 @@ export function setupExports({
             status(`Đang xuất trang ${index + 1} / ${snapshot.length}…`)
             const name =
               String(index + 1).padStart(2, "0") + "-" + filenameStem(page.name)
-            zip.file(
-              name + "." + extensionFor(format),
-              await exportPage(page, format),
-            )
+            writeArchiveEntry(zip, name + "." + extensionFor(format), await exportPage(page, format))
           }
           saveFile(
             await zip.generateAsync({ type: "blob" }),

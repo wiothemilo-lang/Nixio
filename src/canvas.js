@@ -331,10 +331,10 @@ function drawBox(canvas, box, {
   context.restore()
 }
 
-// The scan the page paints first: while the cleanup layer is visible it is the working scan, and a
-// hidden cleanup layer shows the untouched scan the page arrived with.
-function scanImage(page) {
-  return !hasVisibleLayer(page, "cleanup") && page.originalImage ? page.originalImage : page.image
+// The scan the page paints first: while cleanup is in effect it is the working scan, and hiding
+// cleanup (by layer or by the compare master switch) shows the untouched scan the page arrived with.
+export function scanSourceImage(page, { showCleanup = true } = {}) {
+  return (!showCleanup || !hasVisibleLayer(page, "cleanup")) && page.originalImage ? page.originalImage : page.image
 }
 
 function paintCleanupLayer(canvas, patches, opacity) {
@@ -378,7 +378,7 @@ function paintPage(canvas, page, patches, { showCleanup = true, showText = true 
   }
   const context = canvas.getContext("2d")
   context.clearRect(0, 0, width, height)
-  context.drawImage(scanImage(page), 0, 0)
+  context.drawImage(scanSourceImage(page, { showCleanup }), 0, 0)
   for (const { layer, opacity, strokes } of compositedLayers(page)) {
     if (layer.kind === "cleanup") {
       if (showCleanup) paintCleanupLayer(canvas, patches, opacity)
@@ -486,7 +486,7 @@ export async function nativePageLayers(page) {
   if (!layersNativeFriendly(page)) return null
   const redraw = redrawLayout(page, { cancellable: false })
   await Promise.all([redraw.pending, waitForNativeRetouch(page)])
-  const base = baseCanvas(page, scanImage(page))
+  const base = baseCanvas(page, scanSourceImage(page))
   const text = makeCanvas(base.width, base.height)
   if (hasVisibleLayer(page, "text")) page.boxes.forEach((box) => drawBox(text, box))
   const read = (canvas) => canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data
@@ -537,7 +537,7 @@ export async function exportPage(page, format) {
     return result
   }
   const { writePsd } = await import("ag-psd")
-  const base = baseCanvas(page, scanImage(page))
+  const base = baseCanvas(page, scanSourceImage(page))
   const children = [{ name: "Ảnh gốc", canvas: base }]
   // Hidden layers are simply absent from the file, so the exported layer tree matches the canvas.
   if (hasVisibleLayer(page, "cleanup") || (hasVisibleLayer(page, "retouch") && visibleRetouchStrokes(page).length)) {

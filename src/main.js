@@ -1,4 +1,4 @@
-import { autoFitBox, clamp, drawPage, makeBox, textOverflows } from "./canvas.js"
+import { autoFitBox, clamp, drawPage, makeBox, scanSourceImage, textOverflows } from "./canvas.js"
 import { groupDialogue, isImageFile, readDialogueFile, saveFile } from "./io.js"
 import { setupLibrary } from "./library.js"
 import { matchDialogue, overlapScore, toCoordinates, toRectangle } from "./placement.js"
@@ -1004,13 +1004,16 @@ function syncSplitCompare(page) {
   handle.setAttribute("aria-valuenow", String(Math.round(state.splitPos)))
   handle.setAttribute("aria-valuetext", `Rèm ở ${Math.round(state.splitPos)}%`)
   if (active && page?.image) {
-    const w = page.image.naturalWidth
-    const h = page.image.naturalHeight
+    // The left pane is the original scan: a raw-cleaned page keeps it in `originalImage`, while the
+    // working `image` is the cleaned copy and would make the comparison show the same scan twice.
+    const source = scanSourceImage(page, { showCleanup: false })
+    const w = source.naturalWidth
+    const h = source.naturalHeight
     if (compareCanvas.width !== w || compareCanvas.height !== h) {
       compareCanvas.width = w
       compareCanvas.height = h
     }
-    compareCanvas.getContext("2d").drawImage(page.image, 0, 0)
+    compareCanvas.getContext("2d").drawImage(source, 0, 0)
   }
 }
 
@@ -2191,6 +2194,7 @@ const notifications = createNotificationCenter({ byId, locale: () => i18n.locale
 refreshLocaleViews = () => {
   notifications.render()
   dialogs?.renderFindResults()
+  chat?.refreshWelcome?.()
 }
 const notify = (options) => notifications.notify(options)
 

@@ -262,8 +262,7 @@ export function setupReplay({
     return { ok: replay.ok, replay, message: summaryOf(record, replay) }
   }
 
-  function save(record) {
-    const projectKey = projectId()
+  function save(record, projectKey = projectId()) {
     if (!projectKey || !record) return false
     const saved = saveProjectTurnRecord(projectKey, record)
     if (saved) refresh()

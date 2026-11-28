@@ -1,3 +1,4 @@
+import { writeArchiveEntry } from "./export-presets.js"
 import { filenameStem, imageMimeType, normalizedSearch, saveFile } from "./io.js"
 
 function catalogUrl(value) {
@@ -143,7 +144,7 @@ export function setupLibrary(importPages) {
     ["download-chapter", async (files, name) => {
       const { default: JSZip } = await import("jszip")
       const zip = new JSZip()
-      files.forEach((file) => zip.file(file.name, file))
+      files.forEach((file) => writeArchiveEntry(zip, file.name, file))
       saveFile(await zip.generateAsync({ type: "blob" }), name + ".zip")
     }],
   ]) {

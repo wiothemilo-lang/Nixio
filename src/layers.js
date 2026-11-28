@@ -110,9 +110,24 @@ export function strokeTarget(page, layerId) {
     layers.find((layer) => layer.kind === "retouch") ?? null
 }
 
+// A brush gesture should not start when the page has neither a brush layer nor room for one: the
+// stroke would be accepted but never painted. The layer panel enforces the same limit.
+export function canPaint(page, layerId) {
+  return Boolean(strokeTarget(page, layerId)) || pageLayers(page).length < layerLimit
+}
+
 export function addStroke(page, stroke, layerId) {
   if (!page || !stroke) return null
-  const target = strokeTarget(page, layerId)
+  let target = strokeTarget(page, layerId)
+  if (!target) {
+    // The panel can delete the last retouch layer. Without a layer a stroke is stored but never
+    // painted or exported, so the next stroke restores a retouch layer below the text instead.
+    const textIndex = page.layers.findIndex((layer) => layer.kind === "text")
+    target = addLayer(page, "retouch", { index: textIndex < 0 ? undefined : textIndex })
+  }
+  // A full stack cannot take a brush layer. Refuse the stroke instead of storing one that would
+  // never paint; the caller reports why so the rejection is not silent.
+  if (!target) return null
   page.retouchStrokes ??= []
   // The id is always written: reordering the stack must never move a stroke to another layer.
   if (target) stroke.layerId = target.id

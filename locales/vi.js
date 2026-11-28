@@ -7,6 +7,7 @@ export const meta = {
 
 export const messages = {
   "app.title": "Nixio — Biên tập trang truyện",
+  "chat.welcome": "Trợ lý AI Harness v3 hỗ trợ ngữ cảnh dự án trực tiếp, hồ sơ kỹ năng theo thể loại, thẻ hỏi trắc nghiệm, duyệt từng thay đổi AI (kèm duyệt thao tác hàng loạt), Chế độ Kế hoạch (Plan Mode), tự thử lại khi lỗi mạng/429, chống lặp công cụ và lệnh nhanh (/qc, /plan, /autofit, /compact, /skill, /help).",
   "dialog.close": "Đóng",
   "dialogs.styleGuide.cleared": "Đã xóa hướng dẫn phong cách của dự án.",
   "dialogs.styleGuide.defaultOption": "Theo mặc định",
@@ -173,6 +174,7 @@ export const messages = {
   "status.raw.running": "Đang làm sạch ảnh raw (cân bằng trắng, khử nhiễu, tăng sắc nét)…",
   "status.redo": "Đã làm lại.",
   "status.retouch.cleared": "Đã xóa toàn bộ nét vẽ tay trên trang.",
+  "status.retouch.noLayer": "Không thể vẽ: trang đã đạt 24 lớp và không có lớp cọ. Hãy xóa một lớp rồi thử lại.",
   "status.retouch.undo": "Đã hoàn tác nét cọ gần nhất.",
   "status.script.failed": "Không nhập được kịch bản. {error}",
   "status.script.needInput": "Hãy thêm ảnh và nhập lời thoại.",

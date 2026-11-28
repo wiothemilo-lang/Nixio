@@ -73,9 +73,12 @@ class RecoveryCatalog {
   async list() {
     await this.tail
     const ids = (await readdir(this.directory).catch(() => [])).filter(validId)
-    const projects = await Promise.all(ids.map(async (id) => ({
-      ...await this.metadata(id), snapshots: await this.snapshots(id),
-    })))
+    const projects = await Promise.all(ids.map(async (id) => {
+      const { path, ...metadata } = await this.metadata(id)
+      // The catalogue entry is sent to the renderer; only the fact that a saved file exists is useful
+      // there, never the absolute path main keeps for `resolve()`.
+      return { ...metadata, saved: Boolean(path), snapshots: await this.snapshots(id) }
+    }))
     return projects.sort((a, b) => b.updatedAt - a.updatedAt)
   }
 

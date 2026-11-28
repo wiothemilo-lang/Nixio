@@ -112,6 +112,8 @@ test("the chosen locale persists and an unknown stored value falls back to Vietn
   assert.equal(loadLocale(storage), "ja")
   storage.setItem(LOCALE_STORAGE_KEY, "klingon")
   assert.equal(loadLocale(storage), "vi")
+  storage.setItem(LOCALE_STORAGE_KEY, " EN ")
+  assert.equal(loadLocale(storage), "en", "a stored value follows the same canonicalisation as every other input")
   assert.equal(normalizeLocale("EN"), "en")
   assert.equal(normalizeLocale(undefined), "vi")
 })
