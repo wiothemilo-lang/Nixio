@@ -69,6 +69,7 @@ import { setupLayers } from "./controllers/layers.js"
 import { setupGestures } from "./controllers/gestures.js"
 import { setupShortcuts } from "./controllers/shortcuts.js"
 import { setupChat } from "./controllers/chat.js"
+import { setupModelBar } from "./controllers/model-bar.js"
 import { setupUsage } from "./controllers/usage.js"
 import { setupReplay } from "./controllers/replay.js"
 import { setupLocale } from "./controllers/locale.js"
@@ -620,7 +621,7 @@ if (typeof matchMedia === "function") {
   matchMedia("(max-width: 640px)").addEventListener("change", syncToolControls)
 }
 // The header wraps on narrow screens, so fixed drawers and the shell height track its real
-// measured height through --header-h instead of assuming the desktop 48px.
+// measured height through --header-h instead of assuming the desktop 40px.
 const appHeader = document.querySelector(".app-header")
 if (appHeader && typeof ResizeObserver === "function") {
   const syncHeaderHeight = () => {
@@ -822,6 +823,12 @@ function syncProjectActions() {
 }
 
 let chat
+let modelBar
+// The chat badge and the model bar both mirror the provider settings, so every settings change refreshes both.
+function refreshModelUi() {
+  chat?.refreshModelBadge()
+  modelBar?.refresh()
+}
 function syncTranslationActions() {
   const settings = translation.settings()
   byId("resume-translation").disabled = projectBusy() || !resumePending(state.pages, settings)
@@ -831,7 +838,7 @@ function syncTranslationActions() {
     element.textContent = translationLabel(page, settings)
   })
   syncTranslationMemory()
-  chat?.refreshModelBadge()
+  refreshModelUi()
 }
 
 function syncToolControls() {
@@ -2419,7 +2426,6 @@ const translation = setupTranslation({
   usageLedger,
   onSettingsChange: () => {
     syncTranslationActions()
-    chat?.refreshModelBadge()
   },
 })
 syncTranslationMemory = () => translation.syncMemory()
@@ -2481,8 +2487,10 @@ const exportUi = setupExports({
   changed: () => projects.changed(),
 })
 syncExportProfileSummary = exportUi.syncProfileSummary
+modelBar = setupModelBar({ byId, t, onSettingsChange: refreshModelUi })
 chat = setupChat({
   ...shared,
+  readChatEffort: modelBar.effort,
   editorSnapshot,
   selectedIndex,
   selectPage,

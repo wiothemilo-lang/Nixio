@@ -707,6 +707,43 @@
       </div>
     </div>
     <div class="chat-controls">
+      <div class="chat-model-bar" role="group" aria-label="Nhà cung cấp và model" data-i18n-aria-label="model.bar.label">
+        <div class="chat-model-row">
+          <label class="sr-only" for="chat-provider" data-i18n="model.provider.label">Nhà cung cấp</label>
+          <select id="chat-provider" class="chat-model-provider"></select>
+          <button type="button" id="chat-profile-add" class="button chat-model-icon" data-i18n-title="model.add" title="Thêm nhà cung cấp" aria-label="Thêm nhà cung cấp" data-i18n-aria-label="model.add">+</button>
+          <button type="button" id="chat-profile-edit" class="button chat-model-icon" data-i18n-title="model.edit" title="Sửa nhà cung cấp" aria-label="Sửa nhà cung cấp" data-i18n-aria-label="model.edit" hidden>✎</button>
+        </div>
+        <div class="chat-model-row">
+          <label class="sr-only" for="chat-model-gemini" data-i18n="model.name">Model</label>
+          <select id="chat-model-gemini" class="chat-model-name" hidden></select>
+          <label class="sr-only" for="chat-model-llm" data-i18n="model.name">Model</label>
+          <input id="chat-model-llm" class="chat-model-name" type="text" autocomplete="off" spellcheck="false" data-i18n-placeholder="model.llm.placeholder" placeholder="Tên model, ví dụ qwen2.5:7b">
+          <label class="sr-only" for="chat-effort" data-i18n="model.effort.label">Mức suy luận</label>
+          <select id="chat-effort" class="chat-model-effort" data-i18n-title="model.effort.title" title="Mức suy luận (effort) cho lượt chat tiếp theo"></select>
+        </div>
+        <form id="chat-profile-form" class="chat-profile-form" hidden>
+          <h3 id="chat-profile-title" data-i18n="model.profile.titleNew">Nhà cung cấp mới</h3>
+          <label class="field" for="chat-profile-name"><span data-i18n="model.profile.name">Tên</span>
+            <input id="chat-profile-name" type="text" maxlength="48" required autocomplete="off">
+          </label>
+          <label class="field" for="chat-profile-url"><span>Base URL</span>
+            <input id="chat-profile-url" type="url" required spellcheck="false" autocomplete="off" placeholder="http://localhost:11434/v1">
+          </label>
+          <label class="field" for="chat-profile-model"><span data-i18n="model.name">Model</span>
+            <input id="chat-profile-model" type="text" maxlength="128" required autocomplete="off" spellcheck="false">
+          </label>
+          <label class="field" for="chat-profile-key"><span data-i18n="model.profile.key">Khóa API</span>
+            <input id="chat-profile-key" type="password" autocomplete="off" spellcheck="false" data-i18n-placeholder="model.profile.keyHint" placeholder="Để trống nếu server không cần khóa">
+          </label>
+          <p id="chat-profile-error" class="credential-status" role="alert" data-error="true" hidden></p>
+          <div class="form-actions">
+            <button type="submit" id="chat-profile-save" class="button primary" data-i18n="model.profile.save">Lưu</button>
+            <button type="button" id="chat-profile-delete" class="button danger" data-i18n="model.profile.delete" hidden>Xóa</button>
+            <button type="button" id="chat-profile-cancel" class="button" data-i18n="model.profile.cancel">Hủy</button>
+          </div>
+        </form>
+      </div>
       <div class="style-toggles">
         <label class="choice"><input id="chat-allow-web" type="checkbox" checked> Web Search</label>
         <label class="choice"><input id="chat-allow-edits" type="checkbox" checked> Cho phép sửa khung &amp; thuật ngữ</label>
