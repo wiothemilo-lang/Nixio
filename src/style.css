@@ -27,7 +27,7 @@
   --danger-border: #f5c2c5;
   --warn: #b45309;
   --warn-bg: #fffbeb;
-  --header-h: 48px;
+  --header-h: 40px;
   --radius: 6px;
   --radius-sm: 4px;
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
@@ -91,14 +91,14 @@ label:has(> .sr-only:focus-visible), label:has(+ .sr-only:focus-visible) {
 /* Slim thin scrollbars for workstation panels */
 * { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
 
-/* 48px Studio Top Header */
+/* 40px Studio Top Header: slim enough to leave the canvas its height */
 .app-header {
-  min-height: 48px;
+  min-height: 40px;
   display: grid;
   grid-template-columns: auto auto 1fr;
   align-items: center;
-  gap: 12px;
-  padding: 6px 14px;
+  gap: 10px;
+  padding: 3px 12px;
   color: #f3f5f8;
   background: var(--header-bg);
   border-bottom: 1px solid var(--header-border);
@@ -106,9 +106,9 @@ label:has(> .sr-only:focus-visible), label:has(+ .sr-only:focus-visible) {
 .wordmark {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   width: fit-content;
-  font-size: .92rem;
+  font-size: .86rem;
   font-weight: 680;
   text-decoration: none;
   letter-spacing: -.015em;
@@ -117,8 +117,8 @@ label:has(> .sr-only:focus-visible), label:has(+ .sr-only:focus-visible) {
 .wordmark span {
   display: inline-grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   border-radius: 5px;
   background: var(--accent);
   color: var(--accent-ink);
@@ -136,9 +136,9 @@ label:has(> .sr-only:focus-visible), label:has(+ .sr-only:focus-visible) {
 }
 .app-header nav a {
   text-decoration: none;
-  font-size: .78rem;
+  font-size: .74rem;
   font-weight: 560;
-  padding: 4px 10px;
+  padding: 3px 9px;
   border-radius: 4px;
   color: #a8b2c0;
   white-space: nowrap;
@@ -149,9 +149,14 @@ label:has(> .sr-only:focus-visible), label:has(+ .sr-only:focus-visible) {
 .header-actions {
   justify-self: end;
   display: flex;
-  gap: 5px;
+  gap: 4px;
   align-items: center;
   flex-wrap: wrap;
+}
+.header-actions .button {
+  min-height: 24px;
+  padding: 2px 8px;
+  font-size: .74rem;
 }
 
 /* Dense Workstation Buttons */
@@ -216,14 +221,14 @@ label:has(> .sr-only:focus-visible), label:has(+ .sr-only:focus-visible) {
 
 /* Locale picker: the same dense shell as its neighbouring header buttons. */
 .header-locale select {
-  min-height: 28px;
+  min-height: 24px;
   border: 1px solid #2c3340;
   border-radius: var(--radius-sm);
   background: #1b2028;
   color: #dde3ec;
-  font-size: .78rem;
+  font-size: .74rem;
   font-weight: 560;
-  padding: 3px 6px;
+  padding: 2px 6px;
 }
 .header-locale select:hover { background: #262d38; border-color: #3f495a; color: #ffffff; }
 
@@ -231,7 +236,7 @@ label:has(> .sr-only:focus-visible), label:has(+ .sr-only:focus-visible) {
 .editor-layout {
   display: grid;
   grid-template-columns: 258px minmax(360px, 1fr) 288px;
-  height: calc(100dvh - var(--header-h, 48px));
+  height: calc(100dvh - var(--header-h, 40px));
   overflow: hidden;
 }
 .sidebar, .inspector {
@@ -1014,7 +1019,7 @@ dialog h2 { font-size: .96rem; margin-bottom: 8px; }
 /* AI Assistant Drawer (Harness v3) */
 .chat-panel {
   position: fixed;
-  top: var(--header-h, 48px);
+  top: var(--header-h, 40px);
   right: 0;
   bottom: 0;
   width: min(410px, 96vw);
@@ -1043,6 +1048,22 @@ dialog h2 { font-size: .96rem; margin-bottom: 8px; }
 .chat-header-actions { display: flex; gap: 4px; }
 .chat-header-actions .button { min-height: 26px; padding: 2px 8px; font-size: .74rem; }
 .chat-controls { padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--surface); }
+
+/* Model bar: provider and model on one row, effort and the endpoint buttons on the next. Rows wrap
+   before controls shrink below a usable width, so a 320px drawer keeps every select reachable. */
+.chat-model-bar { display: grid; gap: 6px; margin-bottom: 8px; }
+.chat-model-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chat-model-row > select, .chat-model-row > input { min-height: 28px; font-size: .78rem; min-width: 0; }
+.chat-model-provider { flex: 1 1 140px; }
+.chat-model-name { flex: 1 1 160px; }
+.chat-model-effort { flex: 0 1 130px; }
+.chat-model-icon { min-height: 28px; min-width: 28px; padding: 2px 7px; font-size: .8rem; }
+.chat-model-row > input:focus-visible, .chat-model-row > select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.chat-profile-form { display: grid; gap: 4px; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--surface-hover); }
+.chat-profile-form h3 { margin: 0 0 2px; font-size: .8rem; }
+.chat-profile-form .field { margin: 0; font-size: .76rem; }
+.chat-profile-form .field > input { width: 100%; box-sizing: border-box; min-height: 28px; }
+.chat-profile-form .form-actions { margin-top: 4px; }
 .chat-search-config { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); font-size: .76rem; }
 .chat-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
 .chat-chips .button { min-height: 24px; padding: 2px 7px; font-size: .72rem; background: var(--surface-2); }
@@ -1190,8 +1211,8 @@ dialog h2 { font-size: .96rem; margin-bottom: 8px; }
   background: #d97706; color: #ffffff; font-size: .66rem; font-weight: 700;
 }
 .notifications-panel {
-  position: fixed; top: calc(var(--header-h, 48px) + 6px); right: 12px; width: min(370px, calc(100vw - 24px));
-  max-height: min(500px, calc(100dvh - var(--header-h, 48px) - 24px)); z-index: 45;
+  position: fixed; top: calc(var(--header-h, 40px) + 6px); right: 12px; width: min(370px, calc(100vw - 24px));
+  max-height: min(500px, calc(100dvh - var(--header-h, 40px) - 24px)); z-index: 45;
   display: flex; flex-direction: column; background: var(--surface);
   border: 1px solid var(--line-strong); border-radius: 8px; box-shadow: var(--shadow-md); overflow: hidden;
 }
@@ -1249,7 +1270,7 @@ dialog h2 { font-size: .96rem; margin-bottom: 8px; }
 /* With the chat drawer open its composer owns the bottom-right corner, so toasts drop from
    under the header instead of covering the input. */
 body:has(#chat-panel:not([hidden])) .toast-container {
-  top: calc(var(--header-h, 48px) + 10px);
+  top: calc(var(--header-h, 40px) + 10px);
   bottom: auto;
 }
 .notif-actions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
@@ -1263,7 +1284,7 @@ body:has(#chat-panel:not([hidden])) .toast-container {
   .editor-layout {
     grid-template-columns: 230px 1fr;
     height: auto;
-    min-height: calc(100dvh - var(--header-h, 48px));
+    min-height: calc(100dvh - var(--header-h, 40px));
     overflow: visible;
   }
   .sidebar, .inspector { overflow: visible; }

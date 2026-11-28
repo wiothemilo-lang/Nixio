@@ -25,6 +25,10 @@
 
 import { callProvider, providerCredentialsInMain, validateEndpointUrl } from "./provider-bridge.js"
 import { parseRetryAfterMs } from "./llm-retry.js"
+import { sanitizeEffort } from "./llm-profiles.js"
+
+// The chat effort maps onto each API's own knob. Gemini names the same three levels `thinkingLevel`.
+const geminiThinkingLevels = Object.freeze({ low: "low", medium: "medium", high: "high" })
 
 export const PROVIDER_SHAPES = Object.freeze({
   gemini: Object.freeze({ endpointKind: "fixed", pruneShape: "gemini" }),
@@ -317,10 +321,12 @@ async function callGeminiStep({ settings, thread, toolDefs, signal, stream = fal
   if (!key && !providerCredentialsInMain()) throw new Error(geminiCredential.message)
   const models = geminiModels[settings.model] ?? geminiModels.auto
   const { systemPrompt, contents } = thread.request()
+  const thinkingLevel = geminiThinkingLevels[sanitizeEffort(settings.effort)]
   const payload = {
     systemInstruction: { parts: [{ text: systemPrompt }] },
     contents,
     ...(toolDefs.length && { tools: [{ functionDeclarations: toolDefs }] }),
+    ...(thinkingLevel && { generationConfig: { thinkingConfig: { thinkingLevel } } }),
   }
   let response
   for (let i = 0; i < models.length; i++) {
@@ -409,12 +415,14 @@ async function callGeminiStep({ settings, thread, toolDefs, signal, stream = fal
 async function callOpenAiStep({ settings, thread, toolDefs, signal, stream = false, onDelta }) {
   const endpoint = openAiEndpoint.validate(settings[openAiEndpoint.field])
   const [model] = openAiModels.resolve(settings)
+  const effort = sanitizeEffort(settings.effort)
   const { messages } = thread.request()
 
   const body = {
     model,
     temperature: 0.3,
     messages,
+    ...(effort && { reasoning_effort: effort }),
     ...(stream && { stream: true, stream_options: { include_usage: true } }),
     ...(toolDefs.length && {
       tools: toolDefs.map((def) => ({

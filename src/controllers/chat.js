@@ -79,6 +79,7 @@ export function setupChat({
   projectBusy,
   commitLiveForm,
   readTranslationSettings,
+  readChatEffort = () => "",
   onSkillChange,
   registerFontName,
   renderFontOptions,
@@ -214,7 +215,7 @@ export function setupChat({
   }
 
   function readAgentSettings() {
-    const base = readTranslationSettings()
+    const base = { ...readTranslationSettings(), effort: readChatEffort() }
     // The desktop keeps the keys in the OS vault and main attaches them, so the password fields are
     // never read into a request here. A browser has no vault and uses the value on screen, in memory
     // only, which is the same shape the harness already accepts.
